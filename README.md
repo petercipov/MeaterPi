@@ -8,7 +8,7 @@ Hardware:
 
 ## Overview
 
-This project is a Raspberry Pi Python package for connecting an M5Stack ENV III environmental sensor unit using the Pi's I2C pins. For now, the application prints environment values to standard output.
+This project is a Raspberry Pi Python package for reading temperature and humidity from the M5Stack ENV III Unit (SHT30 sensor) via I2C. The application prints environmental data to standard output every 5 seconds.
 
 ## Wiring
 
@@ -69,5 +69,6 @@ The program prints detected I2C addresses and environment values to stdout every
 
 ## Notes
 
-- `src/meaterpi/env3.py` currently returns placeholder environmental data.
-- Replace the placeholder logic with real I2C sensor reads once the ENV III hardware is available.
+- Uses the `sht30` Python library to read temperature and humidity from the SHT30 sensor at I2C address 0x44
+- Prints temperature in Celsius and relative humidity percentage
+- Sensor readings are taken every 5 seconds
