@@ -1,0 +1,20 @@
+[project]
+name = "meaterpi"
+version = "0.1.0"
+description = "Raspberry Pi integration for the M5Stack ENV III Unit, printing values to stdout."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["smbus2>=0.4.0"]
+
+[project.scripts]
+meaterpi = "meaterpi.__main__:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
