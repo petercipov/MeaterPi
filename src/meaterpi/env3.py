@@ -89,22 +89,26 @@ class EnvIIIUnit:
             temp_raw = self.bus.read_i2c_block_data(
                 self.ENV_III_ADDR, self.REG_TEMP_HIGH, 2
             )
+            print(f"DEBUG: temp_raw = {temp_raw}")
             temperature_c = self._parse_temperature(temp_raw)
 
             # Read humidity (2 bytes starting at register 0x02)
             hum_raw = self.bus.read_i2c_block_data(
                 self.ENV_III_ADDR, self.REG_HUM_HIGH, 2
             )
+            print(f"DEBUG: hum_raw = {hum_raw}")
             humidity_pct = self._parse_humidity(hum_raw)
 
             # Read pressure (3 bytes starting at register 0x04)
             press_raw = self.bus.read_i2c_block_data(
                 self.ENV_III_ADDR, self.REG_PRESS_HIGH, 3
             )
+            print(f"DEBUG: press_raw = {press_raw}")
             pressure_hpa = self._parse_pressure(press_raw)
 
             # Read gas/VOC (2 bytes starting at register 0x07)
             gas_raw = self.bus.read_i2c_block_data(self.ENV_III_ADDR, self.REG_GAS, 2)
+            print(f"DEBUG: gas_raw = {gas_raw}")
             voc_index = self._parse_gas(gas_raw)
 
             return EnvironmentalData(
