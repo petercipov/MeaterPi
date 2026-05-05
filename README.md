@@ -69,6 +69,6 @@ The program prints detected I2C addresses and environment values to stdout every
 
 ## Notes
 
-- Uses the `sht30` Python library to read temperature and humidity from the SHT30 sensor at I2C address 0x44
+- Uses a direct `smbus2` driver for the SHT30 sensor at I2C address 0x44
 - Prints temperature in Celsius and relative humidity percentage
 - Sensor readings are taken every 5 seconds
