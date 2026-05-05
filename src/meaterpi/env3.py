@@ -57,6 +57,28 @@ class EnvIIIUnit:
     def __init__(self, i2c_bus: int = 1):
         self.i2c_bus = i2c_bus
         self.bus = SMBus(i2c_bus) if SMBus is not None else None
+        self._initialized = False
+
+    def _initialize_sensor(self) -> None:
+        """Initialize the ENV III sensor for measurement mode."""
+        if self._initialized or self.bus is None:
+            return
+        
+        try:
+            # Try writing reset/init command to register 0 (common for many sensors)
+            # This may vary depending on actual ENV III chip (BME688, etc.)
+            print("DEBUG: Attempting to initialize sensor...")
+            # Common init sequence: write 0x09 to register 0xE0 to reset BME688
+            try:
+                self.bus.write_byte_data(self.ENV_III_ADDR, 0xE0, 0x09)
+                print("DEBUG: Sent reset command to 0xE0")
+                time.sleep(0.1)
+            except OSError:
+                print("DEBUG: Reset command failed, device may not support it")
+            
+            self._initialized = True
+        except Exception as e:
+            print(f"DEBUG: Initialization error: {e}")
 
     def scan_i2c_bus(self) -> list[int]:
         """Scan the I2C bus and return all detected addresses."""
@@ -85,10 +107,20 @@ class EnvIIIUnit:
             )
 
         try:
+            self._initialize_sensor()
+            
             # Dump extended registers to find actual data layout
             all_regs = self.bus.read_i2c_block_data(self.ENV_III_ADDR, 0x00, 32)
             print(f"DEBUG: registers [0x00-0x1F] = {all_regs}")
             print(f"DEBUG: hex = {[hex(b) for b in all_regs]}")
+            
+            # Try reading from higher registers (0x80+) which often contain measurement data
+            try:
+                meas_regs = self.bus.read_i2c_block_data(self.ENV_III_ADDR, 0x80, 16)
+                print(f"DEBUG: measurement registers [0x80-0x8F] = {meas_regs}")
+                print(f"DEBUG: measurement hex = {[hex(b) for b in meas_regs]}")
+            except OSError:
+                print("DEBUG: Could not read measurement registers at 0x80")
             
             # Also try reading from 0x70
             try:
