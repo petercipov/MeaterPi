@@ -85,6 +85,11 @@ class EnvIIIUnit:
             )
 
         try:
+            # Dump all registers to find actual data layout
+            all_regs = self.bus.read_i2c_block_data(self.ENV_III_ADDR, 0x00, 16)
+            print(f"DEBUG: all registers [0x00-0x0F] = {all_regs}")
+            print(f"DEBUG: hex = {[hex(b) for b in all_regs]}")
+
             # Read temperature (2 bytes starting at register 0x00)
             temp_raw = self.bus.read_i2c_block_data(
                 self.ENV_III_ADDR, self.REG_TEMP_HIGH, 2
