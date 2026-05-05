@@ -16,10 +16,10 @@ Connect the ENV III unit to the Raspberry Pi Zero 2 W I2C pins:
 
 - SDA -> GPIO2 (physical pin 3)
 - SCL -> GPIO3 (physical pin 5)
-- 3.3V -> 3.3V (physical pin 1)
+- 5V -> 5V (physical pin 2 or 4)
 - GND -> GND (physical pin 6)
 
-> Use the Pi's 3.3V supply only. The M5Stack ENV III is a 3.3V I2C device, so do not connect it to 5V.
+> The ENV III uses the Pi's 5V supply for power. The I2C lines remain SDA/SCL on GPIO2 and GPIO3.
 
 ## Setup
 
