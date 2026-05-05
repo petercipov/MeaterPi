@@ -41,11 +41,13 @@ sudo apt update
 sudo apt install -y python3 python3-pip python3-venv python3-smbus i2c-tools
 ```
 
-3. Install Python dependencies and the project package:
+3. Create a Python virtual environment and install dependencies:
 
 ```bash
-python3 -m pip install --user -r requirements.txt
-python3 -m pip install --user -e .
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
 ```
 
 4. Verify the I2C bus is available:
@@ -56,7 +58,10 @@ sudo i2cdetect -y 1
 
 ## Run
 
+Activate the virtual environment and run:
+
 ```bash
+source venv/bin/activate
 python3 -m meaterpi
 ```
 
