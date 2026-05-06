@@ -170,6 +170,11 @@ class EnvIIIUnit:
         val = (high << 8) | low
         return val if val < 32768 else val - 65536
 
+    @staticmethod
+    def _signed_divide(dividend: int, divisor: int) -> int:
+        quotient = abs(dividend) // divisor
+        return quotient if dividend >= 0 else -quotient
+
     def _read_qmp6988_pressure(self) -> float | None:
         """Read pressure from QMP6988 sensor using full M5Stack fixed-point conversion."""
         if self.bus is None or self.qmp6988_cal is None:
@@ -217,7 +222,7 @@ class EnvIIIUnit:
         wk1 = c["a1"] * dt
         wk2 = (c["a2"] * dt) >> 14
         wk2 = (wk2 * dt) >> 10
-        wk2 = int((wk1 + wk2) / 32767) >> 19
+        wk2 = self._signed_divide(wk1 + wk2, 32767) >> 19
         temp256 = (c["a0"] + wk2) >> 4
         return int(temp256)
 
@@ -259,7 +264,7 @@ class EnvIIIUnit:
         wk3 += wk2
 
         wk1 += wk3 >> 15
-        wk1 = int(wk1 / 32767)
+        wk1 = self._signed_divide(wk1, 32767)
         wk1 >>= 11
         wk1 += c["b00"]
         return int(wk1)
