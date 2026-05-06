@@ -26,12 +26,14 @@ class EnvironmentalData:
     temperature_c: float
     humidity_pct: float
     pressure_hpa: float
+    altitude_m: float
 
     def to_dict(self) -> dict[str, float]:
         return {
             "temperature_c": self.temperature_c,
             "humidity_pct": self.humidity_pct,
             "pressure_hpa": self.pressure_hpa,
+            "altitude_m": self.altitude_m,
         }
 
 
@@ -276,6 +278,16 @@ class EnvIIIUnit:
         wk1 += c["b00"]
         return int(wk1)
 
+    @staticmethod
+    def _calc_altitude(pressure_hpa: float, temperature_c: float) -> float:
+        """Calculate altitude in meters from pressure and temperature."""
+        pressure_pa = pressure_hpa * 100.0
+        return (
+            (pow(101325.0 / pressure_pa, 1.0 / 5.257) - 1.0)
+            * (temperature_c + 273.15)
+            / 0.0065
+        )
+
     def read_environment(self) -> EnvironmentalData:
         if self.bus is None:
             return EnvironmentalData(
@@ -301,15 +313,18 @@ class EnvIIIUnit:
         else:
             pressure_hpa = 0.0
 
+        altitude_m = self._calc_altitude(pressure_hpa, temperature_c) if pressure_hpa > 0 else 0.0
+
         print(
             f"DEBUG: SHT30 read - temp={temperature_c:.2f}°C, humidity={humidity_pct:.2f}% | "
-            f"QMP6988 read - pressure={pressure_hpa:.2f} hPa"
+            f"QMP6988 read - pressure={pressure_hpa:.2f} hPa | altitude={altitude_m:.1f} m"
         )
 
         return EnvironmentalData(
             temperature_c=temperature_c,
             humidity_pct=humidity_pct,
             pressure_hpa=pressure_hpa,
+            altitude_m=altitude_m,
         )
 
     def close(self) -> None:
