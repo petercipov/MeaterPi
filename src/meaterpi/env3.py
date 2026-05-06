@@ -129,73 +129,148 @@ class EnvIIIUnit:
             print(f"QMP6988 initialization error: {exc}")
 
     def _read_qmp6988_calibration(self) -> dict | None:
-        """Read QMP6988 calibration coefficients from OTP memory."""
+        """Read QMP6988 calibration coefficients from OTP memory (0xA0-0xB8)."""
         try:
             otp_data = self.bus.read_i2c_block_data(
-                QMP6988_I2C_ADDRESS, QMP6988_OTP_BASE, 26
+                QMP6988_I2C_ADDRESS, QMP6988_OTP_BASE, 25
             )
 
+            def to_signed_16(val: int) -> int:
+                """Convert unsigned 16-bit to signed."""
+                return val if val < 32768 else val - 65536
+
             return {
-                "c0": ((otp_data[0] & 0x3F) << 4) | ((otp_data[1] & 0xF0) >> 4),
-                "c1": ((otp_data[1] & 0x0F) << 8) | otp_data[2],
-                "c2": (otp_data[3] << 8) | otp_data[4],
-                "c3": (otp_data[5] << 8) | otp_data[6],
-                "c4": ((otp_data[7] & 0x0F) << 8) | otp_data[8],
-                "c5": (otp_data[9] << 8) | otp_data[10],
-                "c6": (otp_data[11] << 8) | otp_data[12],
-                "c7": (otp_data[13] << 8) | otp_data[14],
-                "c8": (otp_data[15] << 8) | otp_data[16],
-                "c9": (otp_data[17] << 8) | otp_data[18],
-                "ca": (otp_data[19] << 8) | otp_data[20],
-                "cb": (otp_data[21] << 8) | otp_data[22],
-                "cc": (otp_data[23] << 8) | otp_data[24],
-                "d1": otp_data[25] & 0x0F,
+                "b00": self._bytes_to_int16(otp_data[0], otp_data[1]),
+                "bt1": 2982 * to_signed_16(self._bytes_to_int16(otp_data[2], otp_data[3])) + 107370906,
+                "bt2": 329854 * to_signed_16(self._bytes_to_int16(otp_data[4], otp_data[5])) + 108083093,
+                "bp1": 19923 * to_signed_16(self._bytes_to_int16(otp_data[6], otp_data[7])) + 1133836764,
+                "b11": 2406 * to_signed_16(self._bytes_to_int16(otp_data[8], otp_data[9])) + 118215883,
+                "bp2": 3079 * to_signed_16(self._bytes_to_int16(otp_data[10], otp_data[11])) - 181579595,
+                "b12": 6846 * to_signed_16(self._bytes_to_int16(otp_data[12], otp_data[13])) + 85590281,
+                "b21": 13836 * to_signed_16(self._bytes_to_int16(otp_data[14], otp_data[15])) + 79333336,
+                "bp3": 2915 * to_signed_16(self._bytes_to_int16(otp_data[16], otp_data[17])) + 157155561,
+                "a0": self._bytes_to_int16(otp_data[18], otp_data[19]),
+                "a1": self._bytes_to_int16(otp_data[20], otp_data[21]),
+                "a2": self._bytes_to_int16(otp_data[22], otp_data[23]),
             }
         except Exception as exc:
             print(f"Error reading QMP6988 calibration: {exc}")
             return None
 
+    @staticmethod
+    def _bytes_to_int16(high: int, low: int) -> int:
+        """Convert two bytes to signed 16-bit integer."""
+        val = (high << 8) | low
+        return val if val < 32768 else val - 65536
+
     def _read_qmp6988_pressure(self) -> float | None:
-        """Read pressure from QMP6988 sensor."""
+        """Read pressure from QMP6988 sensor using full M5Stack fixed-point conversion."""
         if self.bus is None or self.qmp6988_cal is None:
             return None
 
         try:
+            # Trigger measurement (control register 0xF4 = 0x33 for normal mode)
             self.bus.write_byte_data(QMP6988_I2C_ADDRESS, QMP6988_CTRL_REG, 0x33)
             sleep(0.008)
 
+            # Read 6 bytes: pressure (0xF7-0xF9) then temperature (0xFA-0xFC)
             adc_data = self.bus.read_i2c_block_data(
-                QMP6988_I2C_ADDRESS, QMP6988_ADC_DATA_REG, 3
+                QMP6988_I2C_ADDRESS, QMP6988_ADC_DATA_REG, 6
             )
 
-            adc_p = (adc_data[0] << 16) | (adc_data[1] << 8) | adc_data[2]
-            adc_p = adc_p >> 4
+            # Parse raw data: pressure in bytes[0:3], temperature in bytes[3:6]
+            pressure_raw = (adc_data[0] << 16) | (adc_data[1] << 8) | adc_data[2]
+            temp_raw = (adc_data[3] << 16) | (adc_data[4] << 8) | adc_data[5]
 
-            cal = self.qmp6988_cal
-            c0 = cal["c0"] if cal["c0"] < 32768 else cal["c0"] - 65536
-            c1 = cal["c1"] if cal["c1"] < 32768 else cal["c1"] - 65536
-            c2 = cal["c2"] if cal["c2"] < 32768 else cal["c2"] - 65536
-            c3 = cal["c3"] if cal["c3"] < 32768 else cal["c3"] - 65536
-            c4 = cal["c4"] if cal["c4"] < 32768 else cal["c4"] - 65536
-            c5 = cal["c5"] if cal["c5"] < 32768 else cal["c5"] - 65536
-            c6 = cal["c6"] if cal["c6"] < 32768 else cal["c6"] - 65536
-            c7 = cal["c7"] if cal["c7"] < 32768 else cal["c7"] - 65536
-            c8 = cal["c8"] if cal["c8"] < 32768 else cal["c8"] - 65536
-            c9 = cal["c9"] if cal["c9"] < 32768 else cal["c9"] - 65536
-            ca = cal["ca"] if cal["ca"] < 32768 else cal["ca"] - 65536
-            cb = cal["cb"] if cal["cb"] < 32768 else cal["cb"] - 65536
-            cc = cal["cc"] if cal["cc"] < 32768 else cal["cc"] - 65536
+            # Subtract offset (2^23 = 8388608)
+            SUB_RAW = 8388608
+            dp = int(pressure_raw) - SUB_RAW
+            dt = int(temp_raw) - SUB_RAW
 
-            opa = c0 + (c1 + 261.0) * adc_p / 65536.0
-            opb = opa + (c2 + adc_p / 32.0) * adc_p / 524288.0
+            # Convert temperature first (needed for pressure compensation)
+            t256 = self._convert_qmp6988_temperature(dt)
 
-            pressure_pa = opb + ((c3 + 0.5) / 128.0) * adc_p / 16777216.0
+            # Convert pressure using temperature-compensated formula
+            p16 = self._convert_qmp6988_pressure(dp, t256)
+
+            # Final conversion: Pa from Q4 format, then to hPa
+            pressure_pa = p16 / 16.0
             pressure_hpa = pressure_pa / 100.0
 
             return pressure_hpa
+
         except Exception as exc:
             print(f"Error reading QMP6988 pressure: {exc}")
             return None
+
+    def _convert_qmp6988_temperature(self, dt: int) -> int:
+        """Convert raw temperature using M5Stack fixed-point algorithm."""
+        c = self.qmp6988_cal
+
+        # wk1: 54Q23
+        wk1 = c["a1"] * dt
+        # wk2: 39Q33
+        wk2 = (c["a2"] * dt) >> 14
+        # wk2: 52Q23
+        wk2 = (wk2 * dt) >> 10
+        # wk2: 20Q04
+        wk2 = ((wk1 + wk2) // 32767) >> 19
+        # temp256: 17Q0
+        temp256 = ((c["a0"] + wk2) >> 4)
+
+        return int(temp256)
+
+    def _convert_qmp6988_pressure(self, dp: int, tx: int) -> int:
+        """Convert raw pressure using M5Stack fixed-point algorithm with temperature compensation."""
+        c = self.qmp6988_cal
+
+        # Complex fixed-point calculation following M5Stack implementation
+        # wk1 = 50Q15
+        wk1 = (c["bt1"] * tx) + ((c["bp1"] * dp) >> 5)
+
+        # wk2 = 55Q29
+        wk2 = (c["bt2"] * tx) >> 1
+        wk2 = (wk2 * tx) >> 8
+        wk3 = wk2
+
+        # wk2 = 61Q29
+        wk2 = (c["b11"] * tx) >> 4
+        wk2 = (wk2 * dp) >> 1
+        wk3 += wk2
+
+        # wk2 = 61Q29
+        wk2 = (c["bp2"] * dp) >> 13
+        wk2 = (wk2 * dp) >> 1
+        wk3 += wk2
+
+        # wk1 += wk3 >> 15 (Q30 >> 15 = Q15)
+        wk1 += wk3 >> 15
+
+        # wk2 = 61Q30
+        wk2 = c["b12"] * tx
+        wk2 = (wk2 * tx) >> 22
+        wk2 = (wk2 * dp) >> 1
+        wk3 = wk2
+
+        # wk2 = 61Q20
+        wk2 = (c["b21"] * tx) >> 6
+        wk2 = (wk2 * dp) >> 23
+        wk2 = (wk2 * dp) >> 1
+        wk3 += wk2
+
+        # wk2 = 62Q30
+        wk2 = (c["bp3"] * dp) >> 12
+        wk2 = (wk2 * dp) >> 23
+        wk2 = wk2 * dp
+        wk3 += wk2
+
+        # Final calculation
+        wk1 += wk3 >> 15
+        wk1 //= 32767
+        wk1 >>= 11
+        wk1 += c["b00"]
+
+        return int(wk1)
 
     def read_environment(self) -> EnvironmentalData:
         if self.bus is None:

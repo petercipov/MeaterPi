@@ -70,7 +70,8 @@ The program prints detected I2C addresses and environment values to stdout every
 ## Notes
 
 - Uses direct `smbus2` drivers for both sensors:
-  - **SHT30** at I2C address 0x44 (temperature & humidity)
-  - **QMP6988** at I2C address 0x70 (barometric pressure)
+  - **SHT30** at I2C address 0x44 (temperature & humidity with CRC validation)
+  - **QMP6988** at I2C address 0x70 (barometric pressure with M5Stack fixed-point conversion algorithm)
+- Implements M5Stack's official QMP6988 fixed-point calibration and conversion formula for accurate pressure readings
 - Prints temperature (°C), humidity (%), and pressure (hPa)
 - Sensor readings are taken every 5 seconds
