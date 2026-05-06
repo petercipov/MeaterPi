@@ -136,11 +136,19 @@ class EnvIIIUnit:
             )
 
             def to_signed_16(val: int) -> int:
-                """Convert unsigned 16-bit to signed."""
                 return val if val < 32768 else val - 65536
 
+            def to_signed_20(val: int) -> int:
+                return val if val < (1 << 19) else val - (1 << 20)
+
+            b00_raw = ((otp_data[0] << 12) | (otp_data[1] << 4) | ((otp_data[24] & 0xF0) >> 4))
+            a0_raw = ((otp_data[18] << 12) | (otp_data[19] << 4) | (otp_data[24] & 0x0F))
+
+            b00 = to_signed_20(b00_raw)
+            a0 = to_signed_20(a0_raw)
+
             return {
-                "b00": self._bytes_to_int16(otp_data[0], otp_data[1]),
+                "b00": b00,
                 "bt1": 2982 * to_signed_16(self._bytes_to_int16(otp_data[2], otp_data[3])) + 107370906,
                 "bt2": 329854 * to_signed_16(self._bytes_to_int16(otp_data[4], otp_data[5])) + 108083093,
                 "bp1": 19923 * to_signed_16(self._bytes_to_int16(otp_data[6], otp_data[7])) + 1133836764,
@@ -149,7 +157,7 @@ class EnvIIIUnit:
                 "b12": 6846 * to_signed_16(self._bytes_to_int16(otp_data[12], otp_data[13])) + 85590281,
                 "b21": 13836 * to_signed_16(self._bytes_to_int16(otp_data[14], otp_data[15])) + 79333336,
                 "bp3": 2915 * to_signed_16(self._bytes_to_int16(otp_data[16], otp_data[17])) + 157155561,
-                "a0": self._bytes_to_int16(otp_data[18], otp_data[19]),
+                "a0": a0,
                 "a1": self._bytes_to_int16(otp_data[20], otp_data[21]),
                 "a2": self._bytes_to_int16(otp_data[22], otp_data[23]),
             }
@@ -159,7 +167,6 @@ class EnvIIIUnit:
 
     @staticmethod
     def _bytes_to_int16(high: int, low: int) -> int:
-        """Convert two bytes to signed 16-bit integer."""
         val = (high << 8) | low
         return val if val < 32768 else val - 65536
 
@@ -207,69 +214,54 @@ class EnvIIIUnit:
         """Convert raw temperature using M5Stack fixed-point algorithm."""
         c = self.qmp6988_cal
 
-        # wk1: 54Q23
         wk1 = c["a1"] * dt
-        # wk2: 39Q33
         wk2 = (c["a2"] * dt) >> 14
-        # wk2: 52Q23
         wk2 = (wk2 * dt) >> 10
-        # wk2: 20Q04
         wk2 = ((wk1 + wk2) // 32767) >> 19
-        # temp256: 17Q0
-        temp256 = ((c["a0"] + wk2) >> 4)
-
+        temp256 = (c["a0"] + wk2) >> 4
         return int(temp256)
 
     def _convert_qmp6988_pressure(self, dp: int, tx: int) -> int:
         """Convert raw pressure using M5Stack fixed-point algorithm with temperature compensation."""
         c = self.qmp6988_cal
 
-        # Complex fixed-point calculation following M5Stack implementation
-        # wk1 = 50Q15
-        wk1 = (c["bt1"] * tx) + ((c["bp1"] * dp) >> 5)
+        wk1 = c["bt1"] * tx
+        wk2 = (c["bp1"] * dp) >> 5
+        wk1 += wk2
 
-        # wk2 = 55Q29
         wk2 = (c["bt2"] * tx) >> 1
         wk2 = (wk2 * tx) >> 8
         wk3 = wk2
 
-        # wk2 = 61Q29
         wk2 = (c["b11"] * tx) >> 4
         wk2 = (wk2 * dp) >> 1
         wk3 += wk2
 
-        # wk2 = 61Q29
         wk2 = (c["bp2"] * dp) >> 13
         wk2 = (wk2 * dp) >> 1
         wk3 += wk2
 
-        # wk1 += wk3 >> 15 (Q30 >> 15 = Q15)
-        wk1 += wk3 >> 15
+        wk1 += wk3 >> 14
 
-        # wk2 = 61Q30
         wk2 = c["b12"] * tx
         wk2 = (wk2 * tx) >> 22
         wk2 = (wk2 * dp) >> 1
         wk3 = wk2
 
-        # wk2 = 61Q20
         wk2 = (c["b21"] * tx) >> 6
         wk2 = (wk2 * dp) >> 23
         wk2 = (wk2 * dp) >> 1
         wk3 += wk2
 
-        # wk2 = 62Q30
         wk2 = (c["bp3"] * dp) >> 12
         wk2 = (wk2 * dp) >> 23
         wk2 = wk2 * dp
         wk3 += wk2
 
-        # Final calculation
         wk1 += wk3 >> 15
         wk1 //= 32767
         wk1 >>= 11
         wk1 += c["b00"]
-
         return int(wk1)
 
     def read_environment(self) -> EnvironmentalData:
