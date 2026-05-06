@@ -209,6 +209,13 @@ class EnvIIIUnit:
             pressure_pa = p16 / 16.0
             pressure_hpa = pressure_pa / 100.0
 
+            qmp_temp_c = t256 / 256.0
+            print(
+                f"DEBUG QMP6988 raw: pressure_raw={pressure_raw} temp_raw={temp_raw} dt={dt} "
+                f"t256={t256} temp_int={qmp_temp_c:.2f} p16={p16} pressure_pa={pressure_pa:.2f} "
+                f"pressure_hpa={pressure_hpa:.4f}"
+            )
+
             return pressure_hpa
 
         except Exception as exc:
