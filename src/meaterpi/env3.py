@@ -158,8 +158,8 @@ class EnvIIIUnit:
                 "b21": 13836 * to_signed_16(self._bytes_to_int16(otp_data[14], otp_data[15])) + 79333336,
                 "bp3": 2915 * to_signed_16(self._bytes_to_int16(otp_data[16], otp_data[17])) + 157155561,
                 "a0": a0,
-                "a1": self._bytes_to_int16(otp_data[20], otp_data[21]),
-                "a2": self._bytes_to_int16(otp_data[22], otp_data[23]),
+                "a1": 3608 * self._bytes_to_int16(otp_data[20], otp_data[21]) - 1731677965,
+                "a2": 16889 * self._bytes_to_int16(otp_data[22], otp_data[23]) - 87619360,
             }
         except Exception as exc:
             print(f"Error reading QMP6988 calibration: {exc}")
