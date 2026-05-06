@@ -217,7 +217,7 @@ class EnvIIIUnit:
         wk1 = c["a1"] * dt
         wk2 = (c["a2"] * dt) >> 14
         wk2 = (wk2 * dt) >> 10
-        wk2 = ((wk1 + wk2) // 32767) >> 19
+        wk2 = int((wk1 + wk2) / 32767) >> 19
         temp256 = (c["a0"] + wk2) >> 4
         return int(temp256)
 
@@ -259,7 +259,7 @@ class EnvIIIUnit:
         wk3 += wk2
 
         wk1 += wk3 >> 15
-        wk1 //= 32767
+        wk1 = int(wk1 / 32767)
         wk1 >>= 11
         wk1 += c["b00"]
         return int(wk1)
