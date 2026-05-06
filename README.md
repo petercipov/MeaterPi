@@ -69,6 +69,8 @@ The program prints detected I2C addresses and environment values to stdout every
 
 ## Notes
 
-- Uses a direct `smbus2` driver for the SHT30 sensor at I2C address 0x44
-- Prints temperature in Celsius and relative humidity percentage
+- Uses direct `smbus2` drivers for both sensors:
+  - **SHT30** at I2C address 0x44 (temperature & humidity)
+  - **QMP6988** at I2C address 0x70 (barometric pressure)
+- Prints temperature (°C), humidity (%), and pressure (hPa)
 - Sensor readings are taken every 5 seconds
