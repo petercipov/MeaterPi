@@ -5,12 +5,23 @@ Target hardware: Raspberry Pi Zero 2 W
 Hardware:
 - Raspberry Pi Zero 2 W
 - M5Stack ENV III Unit
+- ARCTIC P12 Pro PST Fan (12V, 4-pin PWM)
 
 ## Overview
 
 This project is a Raspberry Pi Python package for reading temperature and humidity from the M5Stack ENV III Unit (SHT30 sensor) via I2C. The application prints environmental data to standard output every 5 seconds.
 
 ## Wiring
+
+> Note: The Raspberry Pi Zero 2 W uses a 40-pin GPIO header for all connections.
+
+### Power Architecture
+
+- **12V PSU** powers both Raspberry Pi (via step-down converter) and fan
+- Step-down converter (LM7805 or buck converter module) provides regulated 5V to Raspi 5V GPIO header
+- All GND connections tied together
+
+### ENV III Unit (I2C Temperature, Humidity, Pressure)
 
 Connect the ENV III unit to the Raspberry Pi Zero 2 W I2C pins:
 
@@ -20,6 +31,39 @@ Connect the ENV III unit to the Raspberry Pi Zero 2 W I2C pins:
 - GND -> GND (physical pin 6)
 
 > The ENV III uses the Pi's 5V supply for power. The I2C lines remain SDA/SCL on GPIO2 and GPIO3.
+> Note: The ENV III unit uses a `HY2.0-4P` connector.
+
+### ARCTIC P12 Pro PST Fan (12V PWM + RPM Tachometer)
+
+**Fan connector pinout (4-pin):**
+- Pin 1 (Black) → GND
+- Pin 2 (Yellow) → 12V
+- Pin 3 (Green) → PWM control
+- Pin 4 (Blue) → RPM feedback
+
+> Note: The ARCTIC P12 Pro PST fan uses a 4-pin Molex connector.
+
+**Wiring:**
+
+| Fan Pin | Connection |
+|---------|-----------|
+| GND (black) | Raspi GND (GPIO pin 6, 9, 14, 20, 25, etc.) |
+| 12V (yellow) | 12V PSU output |
+| PWM (green) | GPIO17 (physical pin 11) |
+| RPM (blue) | Voltage divider (see below) → GPIO27 (physical pin 13) |
+
+**Voltage Divider for RPM feedback** (5V fan signal → 3.3V Raspi GPIO):
+- Fan RPM (blue) → 1kΩ resistor → GPIO27
+- GPIO27 → 2kΩ resistor → GND
+
+This divides 5V to 3.3V, safe for Raspi GPIO.
+
+**Power connections:**
+- 12V PSU GND → Raspi GND (common ground)
+- 12V PSU +12V → Fan 12V pin
+- 12V PSU +12V → Step-down converter input
+- Step-down converter +5V output → Raspi 5V GPIO header pin (physical pin 4 or 2)
+- Step-down converter GND → Raspi GND (GPIO pin 6 or 9)
 
 ## Setup
 
@@ -73,5 +117,11 @@ The program prints detected I2C addresses and environment values to stdout every
   - **SHT30** at I2C address 0x44 (temperature & humidity with CRC validation)
   - **QMP6988** at I2C address 0x70 (barometric pressure with M5Stack fixed-point conversion algorithm)
 - Implements M5Stack's official QMP6988 fixed-point calibration and conversion formula for accurate pressure readings
+- PWM fan control via GPIO17 (12V ARCTIC P12 Pro PST)
+- RPM feedback from fan via GPIO27 with voltage divider (5V → 3.3V)
 - Prints temperature (°C), humidity (%), and pressure (hPa)
-- Sensor readings are taken every 5 seconds
+- Sensor readings and fan status are taken every 5 seconds
+- Requires:
+  - 12V regulated power supply (capable of powering Raspi via buck converter + fan)
+  - 5V step-down converter (LM7805 or buck converter module) for Raspi
+  - 1kΩ and 2kΩ resistors for RPM voltage divider
