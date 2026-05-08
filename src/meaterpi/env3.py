@@ -26,14 +26,12 @@ class EnvironmentalData:
     temperature_c: float
     humidity_pct: float
     pressure_hpa: float
-    altitude_m: float
 
     def to_dict(self) -> dict[str, float]:
         return {
             "temperature_c": self.temperature_c,
             "humidity_pct": self.humidity_pct,
             "pressure_hpa": self.pressure_hpa,
-            "altitude_m": self.altitude_m,
         }
 
 
@@ -211,13 +209,6 @@ class EnvIIIUnit:
             pressure_pa = p16 / 16.0
             pressure_hpa = pressure_pa / 100.0
 
-            qmp_temp_c = t256 / 256.0
-            print(
-                f"DEBUG QMP6988 raw: pressure_raw={pressure_raw} temp_raw={temp_raw} dt={dt} "
-                f"t256={t256} temp_int={qmp_temp_c:.2f} p16={p16} pressure_pa={pressure_pa:.2f} "
-                f"pressure_hpa={pressure_hpa:.4f}"
-            )
-
             return pressure_hpa
 
         except Exception as exc:
@@ -278,16 +269,6 @@ class EnvIIIUnit:
         wk1 += c["b00"]
         return int(wk1)
 
-    @staticmethod
-    def _calc_altitude(pressure_hpa: float, temperature_c: float) -> float:
-        """Calculate altitude in meters from pressure and temperature."""
-        pressure_pa = pressure_hpa * 100.0
-        return (
-            (pow(101325.0 / pressure_pa, 1.0 / 5.257) - 1.0)
-            * (temperature_c + 273.15)
-            / 0.0065
-        )
-
     def read_environment(self) -> EnvironmentalData:
         if self.bus is None:
             return EnvironmentalData(
@@ -313,18 +294,15 @@ class EnvIIIUnit:
         else:
             pressure_hpa = 0.0
 
-        altitude_m = self._calc_altitude(pressure_hpa, temperature_c) if pressure_hpa > 0 else 0.0
-
         print(
             f"DEBUG: SHT30 read - temp={temperature_c:.2f}°C, humidity={humidity_pct:.2f}% | "
-            f"QMP6988 read - pressure={pressure_hpa:.2f} hPa | altitude={altitude_m:.1f} m"
+            f"QMP6988 read - pressure={pressure_hpa:.2f} hPa"
         )
 
         return EnvironmentalData(
             temperature_c=temperature_c,
             humidity_pct=humidity_pct,
             pressure_hpa=pressure_hpa,
-            altitude_m=altitude_m,
         )
 
     def close(self) -> None:
