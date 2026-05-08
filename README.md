@@ -38,10 +38,11 @@ Connect the ENV III unit to the Raspberry Pi Zero 2 W I2C pins:
 **Fan connector pinout (4-pin):**
 - Pin 1 (Black) → GND
 - Pin 2 (Yellow) → 12V
-- Pin 3 (Green) → PWM control
-- Pin 4 (Blue) → RPM feedback
+- Pin 3 (Green) → RPM feedback / tachometer
+- Pin 4 (Blue) → PWM control
 
 > Note: The ARCTIC P12 Pro PST fan uses a 4-pin Molex connector.
+> The pinout above follows the standard 4-pin PC PWM fan convention. Check connector orientation before wiring.
 
 **Wiring:**
 
@@ -49,11 +50,11 @@ Connect the ENV III unit to the Raspberry Pi Zero 2 W I2C pins:
 |---------|-----------|
 | GND (black) | Raspi GND (GPIO pin 6, 9, 14, 20, 25, etc.) |
 | 12V (yellow) | 12V PSU output |
-| PWM (green) | GPIO17 (physical pin 11) |
-| RPM (blue) | Voltage divider (see below) → GPIO27 (physical pin 13) |
+| RPM / tach (green) | Voltage divider (see below) → GPIO27 (physical pin 13) |
+| PWM (blue) | GPIO17 (physical pin 11) |
 
 **Voltage Divider for RPM feedback** (5V fan signal → 3.3V Raspi GPIO):
-- Fan RPM (blue) → 1kΩ resistor → GPIO27
+- Fan RPM / tach (green) → 1kΩ resistor → GPIO27
 - GPIO27 → 2kΩ resistor → GND
 
 This divides 5V to 3.3V, safe for Raspi GPIO.
