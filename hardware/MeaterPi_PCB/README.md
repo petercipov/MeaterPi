@@ -4,19 +4,36 @@ KiCad starter project for a Raspberry Pi Zero 2 W carrier board.
 
 ## Design Intent
 
-- One 12 V DC barrel jack input for the fan and 5 V Raspberry Pi rail
-- Input protection:
-  - 1206 SMD resettable polyfuse
-  - P-channel MOSFET reverse-polarity protection
-  - TVS diode on the protected 12 V rail
-  - bulk input capacitor
-  - 100 nF ceramic input capacitor
-- Buck converter module footprint placeholder for 12 V to 5 V
+- External XY3606 step-down module handles power conversion.
+- The XY3606 module receives the 12 V supply directly.
+- This carrier receives:
+  - +12 V for the fan rail
+  - +5 V for the Raspberry Pi and ENV III rail
+  - shared GND
 - 40-pin Raspberry Pi GPIO header
 - M5Stack ENV III HY2.0/Grove-style 4-pin connector
 - 4-pin PC PWM fan connector
 - Open-drain fan PWM driver from GPIO17
 - Fan tach/RPM path to GPIO27
+
+## Power Architecture
+
+The carrier board uses power option A:
+
+1. Plug the 12 V adapter into the external XY3606 module.
+2. Wire the XY3606/module input-side 12 V and GND to this carrier.
+3. Wire the XY3606 5 V output and GND to this carrier.
+4. The carrier distributes +12 V only to the fan header and +5 V to the Raspberry Pi/ENV III rail.
+
+Removed from this carrier design:
+
+- On-board 12 V barrel jack
+- Input polyfuse
+- PMOS reverse-polarity protection
+- TVS diode
+- Bulk 12 V input capacitor
+- 12 V bypass capacitor
+- On-board/generic buck converter footprint
 
 ## Reference Designator Shortcuts
 
@@ -24,48 +41,40 @@ These are the short labels printed on the schematic/PCB:
 
 | Prefix | Meaning | Example |
 |--------|---------|---------|
-| `C` | Capacitor | `C1` bulk input capacitor |
-| `D` | Diode | `D1` TVS protection diode |
-| `F` | Fuse or resettable fuse | `F1` input polyfuse |
-| `J` | Connector/header/jack | `J1` 12 V barrel jack |
+| `C` | Capacitor | `C3` 5 V bypass capacitor |
+| `J` | Connector/header/jack | `J1` external power connector |
 | `Q` | Transistor or MOSFET | `Q1` PWM MOSFET |
 | `R` | Resistor | `R2` PWM gate resistor |
-| `U` | Module or IC | `U1` buck converter module |
 
 ## Component Reference
 
 | Ref | Value / Part | Purpose |
 |-----|--------------|---------|
-| `J1` | `12V_BARREL_JACK` | Horizontal DC barrel jack input. Current footprint is CUI PJ-063AH-style, 5.5 mm OD / 2.0 mm ID, center-positive. Pin 1 is +12 V input, pin 2 is GND/sleeve. |
-| `F1` | SMD polyfuse | Resettable input fuse for the incoming 12 V rail. Choose final current rating before fabrication. |
-| `Q2` | `PMOS_REV_PROTECT` | P-channel MOSFET used for reverse-polarity input protection. Verify the exact pinout for the selected part. |
-| `R7` | 100k | Gate pull-down for the reverse-polarity PMOS protection circuit. |
-| `D1` | `SMBJ15A` | TVS diode that clamps transients on the protected 12 V rail. |
-| `C1` | 220 uF / 25 V | Bulk input capacitor on the protected 12 V rail. |
-| `C2` | 100 nF | Small ceramic bypass capacitor on the protected 12 V rail. |
-| `U1` | `5V_BUCK_MODULE` | Placeholder footprint for a 12 V to 5 V buck converter module. |
+| `J1` | `POWER_FROM_XY3606` | 4-pin screw terminal from the external XY3606/power wiring: +12 V, GND, +5 V, GND. |
 | `J2` | `RASPBERRY_PI_GPIO` | 40-pin Raspberry Pi GPIO socket/header connection. |
 | `J3` | `ENV_III` | 4-pin HY2.0/Grove-style connector for the M5Stack ENV III sensor. |
 | `J4` | `4PIN_PWM_FAN` | Standard 4-pin PC PWM fan connector. |
 | `Q1` | `2N7002` | N-channel MOSFET used as the open-drain PWM driver for fan pin 4. |
 | `R2` | 220R | Series resistor between Raspberry Pi GPIO17 and the Q1 gate. |
 | `R3` | 100k | Pull-down resistor for the Q1 gate, keeping fan PWM off during boot/reset. |
-| `R4` | 10k DNP | Optional 3.3 V pull-up for fan tach if the fan tach output is open-drain/open-collector. Do not populate when using the divider option. |
-| `R5` | 1k | Upper resistor in the fan tach divider path. |
-| `R6` | 2k | Lower resistor in the fan tach divider path to scale tach voltage for GPIO27. |
-| `C3` | 100 nF | 5 V rail bypass capacitor near the Raspberry Pi/buck output. |
+| `R4` | 10k | 3.3 V pull-up for the fan tach output. Populate for the standard PC fan open-drain/open-collector tach signal. |
+| `R5` | 1k | Series resistor between fan tach and Raspberry Pi GPIO27. Populate for the default tach circuit. |
+| `C3` | 100 nF | 5 V rail bypass capacitor near the Raspberry Pi/ENV III rail. |
 
 ## Important Pin Assumptions
 
-### Power Jack
+### Power Connector
 
-J1 assumes a center-positive 12 V DC barrel jack:
+J1 receives power from the external XY3606 module and 12 V input wiring:
 
 | Pin | Signal |
 |-----|--------|
-| 1 | +12V center pin / tip |
-| 2 | GND sleeve |
-| MP | Mechanical mounting pads, not connected |
+| 1 | +12V_EXT |
+| 2 | GND |
+| 3 | +5V |
+| 4 | GND |
+
+The XY3606 module has common input/output ground, so both J1 GND pins should connect to the same shared ground system.
 
 ### Fan Header
 
@@ -78,6 +87,17 @@ Standard 4-pin PC PWM fan convention:
 | 3 | Tach / RPM sense |
 | 4 | PWM control |
 
+### Fan Tach Circuit
+
+Use the standard PC fan tach assumption as the default:
+
+| Ref | Populate | Purpose |
+|-----|----------|---------|
+| `R4` | 10k | Pulls the open-drain/open-collector fan tach output up to 3.3 V. |
+| `R5` | 1k | Series protection/current limiting between tach and GPIO27. |
+
+This keeps GPIO27 Pi-safe because the tach high level is 3.3 V. A typical PC fan tach output pulls the line low twice per revolution and otherwise leaves it floating, so the board must provide the pull-up.
+
 ### ENV III Connector
 
 M5Stack ENV III PORT.A convention:
@@ -86,17 +106,13 @@ M5Stack ENV III PORT.A convention:
 |-----|------|--------|
 | 1 | Black | GND |
 | 2 | Red | 5V |
-| 3 | Yellow | SDA |
-| 4 | White | SCL |
+| 3 | Yellow | ENV3_SDA |
+| 4 | White | ENV3_SCL |
 
 ## Before Fabrication
 
-- Confirm the exact J1 barrel jack part before fabrication. The current layout targets a CUI PJ-063AH-style horizontal jack.
+- Confirm the exact XY3606 module wiring and terminal polarity before powering the Raspberry Pi.
+- Confirm J1 current rating is sufficient for fan + Raspberry Pi load.
 - Choose exact connector part numbers and replace remaining placeholder footprints where needed.
-- Choose the exact 1206 polyfuse current rating for the 12 V input.
-- Choose the buck converter module footprint or replace it with an onboard regulator design.
-- Review the PMOS reverse-polarity circuit for the selected MOSFET pinout.
-- Decide the tach circuit population option:
-  - use the 1k/2k divider if the fan tach line is externally/internally pulled to about 5 V
-  - use the optional 3.3 V pullup instead if the fan tach output is open-drain/open-collector
-- Run KiCad ERC/DRC after assigning final footprints.
+- Use the default fan tach population: `R4=10k`, `R5=1k`.
+- Run KiCad ERC/DRC after assigning final footprints and routing.
