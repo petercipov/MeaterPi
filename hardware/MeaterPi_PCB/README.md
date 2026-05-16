@@ -184,7 +184,7 @@ sudo apt install -y python3-lgpio
 /usr/bin/python3 scripts/fan_pwm_sweep.py
 ```
 
-The test uses BCM GPIO17 at 10 kHz and sweeps the requested fan speed from 95% down to 20% and back up in a loop, holding each step for 5 seconds. Because Q1 inverts the signal, the script handles the inversion internally.
+The test uses BCM GPIO17 at 10 kHz, sweeps the requested fan speed from 95% down to 10%, requests 0% for 5 seconds, then sweeps back up in a loop. Because Q1 inverts the signal, the script handles the inversion internally.
 
 ## Before Fabrication
 

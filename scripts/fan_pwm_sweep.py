@@ -10,16 +10,22 @@ GPIO_CHIP = 0
 FAN_PWM_GPIO = 17
 PWM_FREQUENCY_HZ = 10_000
 
-MIN_FAN_PERCENT = 20
+MIN_FAN_PERCENT = 10
 MAX_FAN_PERCENT = 95
 STEP_PERCENT = 5
 STEP_DELAY_SECONDS = 5
+OFF_DELAY_SECONDS = 5
 
 
 def set_fan_percent(chip, fan_percent):
     # Q1 inverts the signal: GPIO high pulls fan PWM low.
     gpio_percent = 100 - fan_percent
     lgpio.tx_pwm(chip, FAN_PWM_GPIO, PWM_FREQUENCY_HZ, gpio_percent)
+
+
+def turn_fan_off(chip):
+    # 0% fan request: Q1 pulls the fan PWM input low.
+    lgpio.gpio_write(chip, FAN_PWM_GPIO, 1)
 
 
 def main():
@@ -35,6 +41,10 @@ def main():
                 set_fan_percent(chip, fan_percent)
                 print(f"Fan PWM request: {fan_percent}%")
                 time.sleep(STEP_DELAY_SECONDS)
+
+            turn_fan_off(chip)
+            print("Fan PWM request: 0%")
+            time.sleep(OFF_DELAY_SECONDS)
 
             for fan_percent in range(MIN_FAN_PERCENT, MAX_FAN_PERCENT + 1, STEP_PERCENT):
                 set_fan_percent(chip, fan_percent)
