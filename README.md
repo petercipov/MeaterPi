@@ -134,7 +134,7 @@ sudo apt install -y python3-lgpio
 /usr/bin/python3 scripts/fan_pwm_sweep.py
 ```
 
-The script uses BCM GPIO17 at 25 kHz and repeatedly sweeps the fan request between 100% and 20%. Stop it with `Ctrl-C`; cleanup releases Q1 so the fan returns to full speed.
+The script uses BCM GPIO17 at 10 kHz and repeatedly sweeps the fan request between 100% and 20%. Stop it with `Ctrl-C`; cleanup releases Q1 so the fan returns to full speed.
 
 ## Notes
 
