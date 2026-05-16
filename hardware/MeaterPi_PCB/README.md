@@ -43,8 +43,8 @@ These are the short labels printed on the schematic/PCB:
 |--------|---------|---------|
 | `C` | Capacitor | `C3` 5 V bypass capacitor |
 | `J` | Connector/header/jack | `J1` external power connector |
-| `Q` | Transistor or MOSFET | `Q1` PWM MOSFET |
-| `R` | Resistor | `R2` PWM gate resistor |
+| `Q` | Transistor | `Q1` PWM NPN transistor |
+| `R` | Resistor | `R2` PWM base resistor |
 
 ## Component Reference
 
@@ -54,14 +54,28 @@ These are the short labels printed on the schematic/PCB:
 | `J2` | `RASPBERRY_PI_GPIO` | 40-pin Raspberry Pi GPIO socket/header connection. |
 | `J3` | `ENV_III` | 4-pin HY2.0/Grove-style connector for the M5Stack ENV III sensor. |
 | `J4` | `4PIN_PWM_FAN` | Standard 4-pin PC PWM fan connector. |
-| `Q1` | `2N7002` | N-channel MOSFET used as the open-drain PWM driver for fan pin 4. |
-| `R2` | 220R | Series resistor between Raspberry Pi GPIO17 and the Q1 gate. |
-| `R3` | 100k | Pull-down resistor for the Q1 gate, keeping fan PWM off during boot/reset. |
+| `Q1` | `2N3904` | NPN transistor used as the open-collector PWM pull-down driver for fan pin 4. |
+| `R2` | 4.7k | Base resistor between Raspberry Pi GPIO17 and Q1 base. |
+| `R3` | 100k | Pull-down resistor for Q1 base, keeping fan PWM released during boot/reset. |
 | `R4` | 10k | 3.3 V pull-up for the fan tach output. Populate for the standard PC fan open-drain/open-collector tach signal. |
 | `R5` | 1k | Series resistor between fan tach and Raspberry Pi GPIO27. Populate for the default tach circuit. |
 | `C3` | 100 nF | 5 V rail bypass capacitor near the Raspberry Pi/ENV III rail. |
 
+Q1 datasheet: [onsemi 2N3904](https://www.onsemi.com/pdf/datasheet/2n3904-d.pdf)
+
 ## Important Pin Assumptions
+
+### Q1 2N3904 Transistor
+
+Verified for the `2N3904 H331` TO-92 part by diode test:
+
+| Pin | Function |
+|-----|----------|
+| 1 | Emitter |
+| 2 | Base |
+| 3 | Collector |
+
+With the flat face toward you and the legs downward, the pinout is `E-B-C` from left to right.
 
 ### Power Connector
 
@@ -108,6 +122,60 @@ M5Stack ENV III PORT.A convention:
 | 2 | Red | 5V |
 | 3 | Yellow | ENV3_SDA |
 | 4 | White | ENV3_SCL |
+
+## Breadboard Test
+
+Use the breadboard power rails as:
+
+| Rail | Signal |
+|------|--------|
+| Blue / `-` | GND |
+| Red / `+` | +5 V or +12 V, depending on the circuit being tested |
+
+The rail color is only a convention. Verify with a multimeter, and check whether the breadboard power rails are split in the middle.
+
+### Q1 Fan PWM Driver
+
+Test Q1 with the same pinout used by the schematic and PCB:
+
+| 2N3904 Pin | Function | Breadboard Connection |
+|------------|----------|-----------------------|
+| 1 | Emitter | GND / blue rail |
+| 2 | Base | R2 and R3 base node |
+| 3 | Collector | Fan PWM control wire / fan pin 4 |
+
+With the flat face toward you and the legs downward, the Q1 pins are `E-B-C` from left to right.
+
+Use these through-hole resistors for the breadboard test:
+
+| Ref | Breadboard Part | Connection |
+|-----|-----------------|------------|
+| `R2` | 4.7k, 1/4 W, 5% | Raspberry Pi GPIO17 to Q1 base / pin 2 |
+| `R3` | 100k, 1/4 W, 5% | Q1 base / pin 2 to GND |
+
+Q1 wiring summary:
+
+```text
+GPIO17 ---- R2 4.7k ---- Q1 pin 2 / Base
+                          |
+                        R3 100k
+                          |
+GND ----------------------+
+
+Q1 pin 1 / Emitter   ---- GND
+Q1 pin 3 / Collector ---- Fan PWM pin 4
+```
+
+Fan wiring for this test:
+
+| Fan Pin | Signal | Breadboard Connection |
+|---------|--------|-----------------------|
+| 1 | GND | GND / blue rail |
+| 2 | +12 V | +12 V supply |
+| 3 | Tach / RPM sense | Leave disconnected for Q1-only PWM test |
+| 4 | PWM control | Q1 collector / pin 3 |
+
+The Raspberry Pi GND, 12 V supply GND, fan GND, and Q1 emitter GND must all be connected together.
 
 ## Before Fabrication
 

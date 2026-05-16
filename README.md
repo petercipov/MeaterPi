@@ -59,6 +59,19 @@ Connect the ENV III unit to the Raspberry Pi Zero 2 W I2C pins:
 
 This divides 5V to 3.3V, safe for Raspi GPIO.
 
+**2N3904 PWM transistor:**
+- Datasheet: [onsemi 2N3904](https://www.onsemi.com/pdf/datasheet/2n3904-d.pdf)
+- Verified marking: `2N3904 H331`
+- Pinout, flat face toward you and legs downward:
+
+| Pin | Function |
+|-----|----------|
+| 1 | Emitter |
+| 2 | Base |
+| 3 | Collector |
+
+This matches the diode-test check where red on pin 2 reads about 0.66 V to pin 1 and about 0.65 V to pin 3.
+
 **Power connections:**
 - 12V PSU GND → Raspi GND (common ground)
 - 12V PSU +12V → Fan 12V pin

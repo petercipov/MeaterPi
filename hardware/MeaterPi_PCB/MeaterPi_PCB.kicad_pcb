@@ -251,7 +251,7 @@
 				)
 			)
 		)
-		(property "Value" "220R"
+		(property "Value" "4.7k"
 			(at 0 2.5 0)
 			(layer "F.Fab")
 			(uuid "999cc745-9398-4e94-b82f-3f058f30a03f")
@@ -300,7 +300,7 @@
 			(size 1.2 1.4)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.2)
-			(net "FAN_PWM_GATE")
+			(net "Q1_BASE")
 			(pinfunction "2")
 			(pintype "passive")
 			(uuid "6d061ec8-f610-4ed2-9d95-46f75881d58d")
@@ -588,23 +588,23 @@
 			)
 		)
 	)
-	(footprint "Package_TO_SOT_SMD:SOT-23"
+	(footprint "Package_TO_SOT_THT:TO-92_Inline"
 		(layer "F.Cu")
 		(uuid "dc84cc52-bfbc-4517-a292-a014c1a3729d")
-		(at 60.95 41.55)
+		(at 58.73 42.5)
 		(property "Reference" "Q1"
-			(at 0 -2.6 0)
+			(at 1.27 -3.56 0)
 			(layer "F.SilkS")
 			(uuid "6c52412e-06ac-48ca-90d5-dea0592f9a90")
 			(effects
 				(font
-					(size 0.8 0.8)
-					(thickness 0.12)
+					(size 1 1)
+					(thickness 0.15)
 				)
 			)
 		)
-		(property "Value" "2N7002"
-			(at 0 2.6 0)
+		(property "Value" "2N3904"
+			(at 1.27 2.79 0)
 			(layer "F.Fab")
 			(uuid "f05733ff-c2ee-4bd2-bd90-82ccbe2d0dd2")
 			(effects
@@ -637,35 +637,84 @@
 			)
 		)
 		(duplicate_pad_numbers_are_jumpers no)
-		(pad "1" smd rect
-			(at -0.95 0.95)
-			(size 0.8 0.9)
-			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net "FAN_PWM_GATE")
-			(pinfunction "G")
-			(pintype "input")
+		(fp_line
+			(start -0.53 1.85)
+			(end 3.07 1.85)
+			(stroke
+				(width 0.12)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "479b13e8-d2c1-498f-a836-e0e2c86c6b2b")
+		)
+		(fp_arc
+			(start -0.568478 1.838478)
+			(mid -1.132087 -0.994977)
+			(end 1.27 -2.6)
+			(stroke
+				(width 0.12)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "7ca08bf1-657d-4125-a484-d0ccdc8d9edb")
+		)
+		(fp_arc
+			(start 1.27 -2.6)
+			(mid 3.672087 -0.994977)
+			(end 3.108478 1.838478)
+			(stroke
+				(width 0.12)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "1e07ca6e-3719-4267-af87-8f31246e6b68")
+		)
+		(fp_text user "${REFERENCE}"
+			(at 1.27 0 0)
+			(layer "F.Fab")
+			(uuid "c41c84e2-03e9-40b2-a44f-f16d22f1648d")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(pad "1" thru_hole rect
+			(at 0 0)
+			(size 1.05 1.5)
+			(drill 0.75)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
+			(net "GND")
+			(pinfunction "E")
+			(pintype "passive")
 			(uuid "9c5c2fb0-20c7-4995-88d4-8a1d82158f0b")
 		)
-		(pad "2" smd rect
-			(at 0.95 0.95)
-			(size 0.8 0.9)
-			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net "GND")
-			(pinfunction "S")
-			(pintype "passive")
+		(pad "2" thru_hole oval
+			(at 1.27 0)
+			(size 1.05 1.5)
+			(drill 0.75)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
+			(net "Q1_BASE")
+			(pinfunction "B")
+			(pintype "input")
 			(uuid "dd11e370-c258-4cc4-8607-87577b480706")
 		)
-		(pad "3" smd rect
-			(at 0 -0.95)
-			(size 0.8 0.9)
-			(layers "F.Cu" "F.Mask" "F.Paste")
+		(pad "3" thru_hole oval
+			(at 2.54 0)
+			(size 1.05 1.5)
+			(drill 0.75)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
 			(net "FAN_PWM_OD")
-			(pinfunction "D")
+			(pinfunction "C")
 			(pintype "passive")
 			(uuid "a9a64fe1-1ec8-4c63-b7d8-36db0beb38b2")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Package_TO_SOT_SMD.3dshapes/SOT-23.step"
+		(model "${KICAD10_3DMODEL_DIR}/Package_TO_SOT_THT.3dshapes/TO-92_Inline.step"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -1209,7 +1258,7 @@
 			(size 1.2 1.4)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.2)
-			(net "FAN_PWM_GATE")
+			(net "Q1_BASE")
 			(pinfunction "1")
 			(pintype "passive")
 			(uuid "3e1035fa-9004-4b3f-a54b-6a2f881862d0")
