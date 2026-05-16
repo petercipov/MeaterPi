@@ -127,14 +127,14 @@ The program prints detected I2C addresses and environment values to stdout every
 
 ## Fan PWM Test
 
-With the breadboard Q1 driver connected to GPIO17, run a slow PWM sweep:
+With the breadboard Q1 driver connected to GPIO17 and fan tach connected to GPIO27, run a slow PWM/RPM sweep:
 
 ```bash
 sudo apt install -y python3-lgpio
 /usr/bin/python3 scripts/fan_pwm_sweep.py
 ```
 
-The script uses BCM GPIO17 at 10 kHz and repeatedly sweeps the fan request between 100% and 10%, then requests 0% for 5 seconds. Each normal sweep step also holds for 5 seconds. Stop it with `Ctrl-C`; cleanup releases Q1 so the fan returns to full speed. The PC fan PWM target is normally 25 kHz, but `lgpio` rejected 15 kHz, 20 kHz, and 25 kHz on this Raspberry Pi setup with `bad PWM frequency`.
+The script uses BCM GPIO17 at 10 kHz and reads the tach signal on BCM GPIO27. It repeatedly sweeps the fan request between 100% and 10%, then requests 0% for 5 seconds. Each step prints measured RPM from the standard 2 tach pulses per revolution. Stop it with `Ctrl-C`; cleanup releases Q1 so the fan returns to full speed. The PC fan PWM target is normally 25 kHz, but `lgpio` rejected 15 kHz, 20 kHz, and 25 kHz on this Raspberry Pi setup with `bad PWM frequency`.
 
 ## Notes
 
