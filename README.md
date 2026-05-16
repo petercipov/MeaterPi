@@ -134,7 +134,7 @@ sudo apt install -y python3-lgpio
 /usr/bin/python3 scripts/fan_pwm_sweep.py
 ```
 
-The script uses BCM GPIO17 at 20 kHz and repeatedly sweeps the fan request between 95% and 10%, then requests 0% for 5 seconds. Each normal sweep step also holds for 5 seconds. Stop it with `Ctrl-C`; cleanup releases Q1 so the fan returns to full speed. The PC fan PWM target is normally 25 kHz, but `lgpio` rejected 25 kHz on this Raspberry Pi setup with `bad PWM frequency`.
+The script uses BCM GPIO17 at 15 kHz and repeatedly sweeps the fan request between 95% and 10%, then requests 0% for 5 seconds. Each normal sweep step also holds for 5 seconds. Stop it with `Ctrl-C`; cleanup releases Q1 so the fan returns to full speed. The PC fan PWM target is normally 25 kHz, but `lgpio` rejected 20 kHz and 25 kHz on this Raspberry Pi setup with `bad PWM frequency`.
 
 ## Notes
 
