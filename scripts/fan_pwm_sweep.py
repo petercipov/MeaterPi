@@ -11,23 +11,15 @@ FAN_PWM_GPIO = 17
 PWM_FREQUENCY_HZ = 10_000
 
 MIN_FAN_PERCENT = 20
-MAX_FAN_PERCENT = 100
+MAX_FAN_PERCENT = 95
 STEP_PERCENT = 5
-STEP_DELAY_SECONDS = 1
+STEP_DELAY_SECONDS = 5
 
 
 def set_fan_percent(chip, fan_percent):
     # Q1 inverts the signal: GPIO high pulls fan PWM low.
     gpio_percent = 100 - fan_percent
-
-    if gpio_percent <= 0:
-        lgpio.tx_pwm(chip, FAN_PWM_GPIO, 0, 0)
-        lgpio.gpio_write(chip, FAN_PWM_GPIO, 0)
-    elif gpio_percent >= 100:
-        lgpio.tx_pwm(chip, FAN_PWM_GPIO, 0, 0)
-        lgpio.gpio_write(chip, FAN_PWM_GPIO, 1)
-    else:
-        lgpio.tx_pwm(chip, FAN_PWM_GPIO, PWM_FREQUENCY_HZ, gpio_percent)
+    lgpio.tx_pwm(chip, FAN_PWM_GPIO, PWM_FREQUENCY_HZ, gpio_percent)
 
 
 def main():
@@ -52,7 +44,7 @@ def main():
     except KeyboardInterrupt:
         print("Stopping.")
     finally:
-        set_fan_percent(chip, 100)
+        lgpio.gpio_write(chip, FAN_PWM_GPIO, 0)
         lgpio.gpiochip_close(chip)
 
 
