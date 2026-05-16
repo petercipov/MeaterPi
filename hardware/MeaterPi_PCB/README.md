@@ -177,6 +177,15 @@ Fan wiring for this test:
 
 The Raspberry Pi GND, 12 V supply GND, fan GND, and Q1 emitter GND must all be connected together.
 
+To test PWM from the Raspberry Pi, run:
+
+```bash
+sudo apt install -y python3-lgpio
+/usr/bin/python3 scripts/fan_pwm_sweep.py
+```
+
+The test uses BCM GPIO17 at 25 kHz and sweeps the requested fan speed from 100% down to 20% and back up in a loop. Because Q1 inverts the signal, the script handles the inversion internally.
+
 ## Before Fabrication
 
 - Confirm the exact XY3606 module wiring and terminal polarity before powering the Raspberry Pi.

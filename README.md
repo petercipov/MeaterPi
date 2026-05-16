@@ -125,6 +125,17 @@ python3 -m meaterpi
 
 The program prints detected I2C addresses and environment values to stdout every 5 seconds.
 
+## Fan PWM Test
+
+With the breadboard Q1 driver connected to GPIO17, run a slow PWM sweep:
+
+```bash
+sudo apt install -y python3-lgpio
+/usr/bin/python3 scripts/fan_pwm_sweep.py
+```
+
+The script uses BCM GPIO17 at 25 kHz and repeatedly sweeps the fan request between 100% and 20%. Stop it with `Ctrl-C`; cleanup releases Q1 so the fan returns to full speed.
+
 ## Notes
 
 - Uses direct `smbus2` drivers for both sensors:
